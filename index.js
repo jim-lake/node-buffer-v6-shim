@@ -32,7 +32,11 @@ try {
   Buffer.from('1337', 'hex');
 } catch(e) {
   // replace the whole global object
-  global.Buffer = Object.assign({},oldBuffer,{
+  var newBufferObject = function() { return oldBuffer.apply(this,arguments); };
+  Object.assign(newBufferObject,oldBuffer,{
     from: newBuffer,
   });
+  newBufferObject.prototype = oldBuffer.prototype;
+  global.Buffer = newBufferObject;
+  require('buffer').Buffer = newBufferObject;
 }

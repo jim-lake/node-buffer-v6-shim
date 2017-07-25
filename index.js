@@ -4,8 +4,10 @@ if (Number(process.version.match(/^v(\d+\.\d+)/)[1]) >= 6.0) {
   return;
 }
 
+var oldBuffer = global.Buffer;
+
 function newBuffer(data, encoding, len) {
-  return new Buffer(data, encoding, len);
+  return new oldBuffer(data, encoding, len);
 }
 
 function newSlowBuffer(data, encoding, len) {
@@ -29,11 +31,8 @@ if (!Buffer.from) {
 try {
   Buffer.from('1337', 'hex');
 } catch(e) {
-  // wish I could do something here to fix the broken Buffer.from
-  try {
-    Buffer.from = newBuffer;
-  } catch(e) {
-    // but alas, I cannot
-    console.warn("Your node version has buggy Buffer.from support. Please update to node >= v4.5 or >= v6.3");
-  }
+  // replace the whole global object
+  global.Buffer = Object.assign({},oldBuffer,{
+    from: newBuffer,
+  });
 }
